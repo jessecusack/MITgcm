@@ -33,7 +33,7 @@ C #include "NF90IO.h"
         INTEGER bi, bj
         INTEGER i_dimid, j_dimid, k_dimid, dimids(4), varid
         INTEGER ig_dimid, jg_dimid, kl_dimid, ku_dimid, kp1_dimid
-        INTEGER start(4), count(4), rec_dimid
+        INTEGER start(4), count(4), rec_dimid, ndims
         LOGICAL iAmDoingIO
         character*(MAX_LEN_MBUF) msgbuf
         _RL     a(sNx,sNy,Nr)
@@ -42,7 +42,7 @@ C #include "NF90IO.h"
         _RL     ks(Nr+10)
 
 C initialize this new file...
-        mode_flag = IOR(nf90_netcdf4, nf90_classic_model)
+        mode_flag = IOR(nf90_netcdf4)
         IF (usingMPI) THEN
 #ifdef ALLOW_USE_MPI
               mode_flag = IOR(mode_flag, nf90_mpiio)
@@ -76,45 +76,26 @@ C record is my unlimited.  Other mitgcms seem to use time...
         CALL nf90ERR(err,"Adding k_p1 dim",myThid)
 
 C Define co-ordinate variables (i.e. data that goes w/ each dimension)
-        err = nf90_def_var(ncid, "record", NF90_INT, (/ rec_dimid /),
-     $       varid)
-        CALL nf90ERR(err,"Adding record variable",myThid)
-        err = nf90_put_att(ncid, varid,
-     $       "standard_name",
-     $       "")
-        err = nf90_put_att(ncid, varid,
-     $       "long_name",
-     $       "Sequential record number")
-        err = nf90_put_att(ncid, varid,
-     $       "units",
-     $       "")
-        CALL nf90ERR(err,"Setting attributes",myThid)
+        ndims = 1
+        dimids(1:ndims) = (/ rec_dimid /)
+        err = nf90io_def_var(ncid, "record", NF90_INT,
+     &       ndims, dimids,
+     $       "", "Sequential record number",
+     $       "", 0, myThid, varid)
 
-        err = nf90_def_var(ncid, "i", NF90_INT, (/ i_dimid /), varid)
-        CALL nf90ERR(err,"Adding i variable",myThid)
-        err = nf90_put_att(ncid, varid,
-     $       "standard_name",
-     $       "x_grid_index")
-        err = nf90_put_att(ncid, varid,
-     $       "long_name",
-     $       "x-dimension of the t grid")
-        err = nf90_put_att(ncid, varid,
-     $       "units",
-     $       "")
-        CALL nf90ERR(err,"Setting attributes",myThid)
+        ndims = 1
+        dimids(1:ndims) = (/ i_dimid /)
+        err = nf90io_def_var(ncid, "i", NF90_INT,
+     &       ndims, dimids,
+     $       "x_grid_index", "x-dimension of the t grid",
+     $       "", 0, myThid, varid)
 
-        err = nf90_def_var(ncid, "i_g", NF90_INT, (/ ig_dimid /),
-     $       varid)
-        CALL nf90ERR(err,"Adding i_g variable",myThid)
-        err = nf90_put_att(ncid, varid,
-     $       "standard_name",
-     $       "x_grid_index_at_u_location")
-        err = nf90_put_att(ncid, varid,
-     $       "long_name",
-     $       "x-dimension of the u grid")
-        err = nf90_put_att(ncid, varid,
-     $       "units",
-     $       "")
+        ndims = 1
+        dimids(1:ndims) = (/ ig_dimid /)
+        err = nf90io_def_var(ncid, "i_g", NF90_INT,
+     &       ndims, dimids,
+     $       "x_grid_index_at_u_location", "x-dimension of the u grid",
+     $       "", 0, myThid, varid)
         err = nf90_put_att(ncid, varid,
      $       "c_grid_axis_shift",
      $       -0.5)

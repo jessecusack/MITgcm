@@ -70,7 +70,7 @@ C     bi,bj :: tile indices
       INTEGER i, j, k
       INTEGER bi, bj
 
-c     CHARACTER*(MAX_LEN_MBUF) msgBuf
+      CHARACTER*(MAX_LEN_MBUF) msgBuf
 c     INTEGER ll, llMx, jj, jjMx
       INTEGER ii, klev
       INTEGER CW_DIMS, NLEN
@@ -101,7 +101,9 @@ C     get the filename
       iLen = ILNBLNK(fnames(listId))
       WRITE( fname, '(A,A3)' ) fnames(listId)(1:iLen), '.nc'
       iLen = iLen+3
-      print *,fname(1:iLen)
+      WRITE(msgBuf,'(A,A)') 'Opening ', fname(1:iLen)
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &   SQUEEZE_RIGHT , 1)
 
 C     TODO:
 C      wjay the heck to I do with iRec?
@@ -111,6 +113,10 @@ C     exists and its different than this version, then we should have erased it.
 C     Of course I'm stupid and often forget to erase files.
       INQUIRE(file=fname(1:iLen),exist=lexist)
       IF (.NOT.lexist) THEN
+          WRITE(msgBuf,'(A,A)') 'Initializing ', fname(1:iLen)
+          CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &         SQUEEZE_RIGHT , 1)
+
          CALL NF90IO_INIT_FILE(fname(1:iLen), myThid)
 C        This defines most of the dimensions and all the grid variables.
 C        Basic init doesn't add timestart and timeend variables. Lets
@@ -120,6 +126,8 @@ C        do that here.
      $           "Open diagnostic nc file to write",myThid)
 
 C        put in redef mode...
+C        These are defined here instead of NF90IO_INIT_FILE because
+C        they are specific to diagnostics, whereas the above is not.
          err = nf90_redef(ncid)
          CALL nf90ERR(err, "Redef mode failed!",myThid)
          err = nf90_inq_dimid(ncid, 'record', rec_dimid)
@@ -138,16 +146,20 @@ C        put in redef mode...
 C OK, open the file and get the netcdf id
       err = nf90io_open(fname(1:iLen),ncid)
 C     get the variable id
-      print *,"getting varid"
-      print *,cdiag(ndId)
+
+      WRITE(msgBuf,'(A,A)') 'Getting varid ', cdiag(ndId)
+      CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &   SQUEEZE_RIGHT , 1)
+
       err = nf90_inq_varid(ncid, cdiag(ndId), varid)
       IF (.NOT.(err.EQ.nf90_NoErr)) THEN
-         print *,"Defining varid"
-         print *,cdiag(ndId)
+C        We need to initialize this variable...
+        WRITE(msgBuf,'(A,A)') 'Defining varid ', cdiag(ndId)
+        CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
+     &      SQUEEZE_RIGHT , 1)
 C       we need to define this variable
 C       put in redef mode...
         err = nf90_redef(ncid)
-C       we need to initialize this variable
         err = nf90_inq_dimid(ncid, 'record', rec_dimid)
         CALL nf90ERR(err, "inq record_dimid",myThid)
 C       gdiag will tell us what the other two or three dimensions are
@@ -249,6 +261,8 @@ C        add attributes to the newy defined variable
      $        udiag(ndId))
          CALL nf90ERR(err, "Adding attribute diagnostic variable"
      $        ,myThid)
+C           set to not pre-fill variable....
+         err = nf90_def_var_fill(ncid, varid, 1, 0)
 C        no standard name?  Booo
 C        end definition mode...
          err = nf90_enddef(ncid)
@@ -275,7 +289,6 @@ C       TIME: We should add TIMESTART and TIMEEND so that we can spec avg interv
         err = nf90_put_var(ncid, varid, (/ myTime /), start = (/ iRec /)
      $       ,count = (/ 1 /) )
         CALL nf90ERR(err, "Write time variable",myThid)
-        print *,"Wrote time"
 
         err = nf90_inq_varid(ncid, "timestart", varid)
         CALL nf90ERR(err, "Get the timestart varid",myThid)

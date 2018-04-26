@@ -2,6 +2,44 @@
 #include "CPP_OPTIONS.h"
 
 CCCCCCCCCCCCCCC
+      FUNCTION NF90IO_DEF_VAR(ncid, varname, type, ndims,
+     &      dimids, standardname, longname, units, nofill, myThid,
+     &      varid)
+
+      use netcdf
+#include "NF90IO.h"
+
+C     !DESCRIPTION:
+C     Convenience wrappper around NF90_VAR_PAR_ACCESS that
+C     doesnt do anything if usingMPI is false
+
+      INTEGER, intent(in) :: ncid, ndims, myThid, type, nofill
+      INTEGER, intent(in) :: dimids(4)
+      INTEGER, intent(out) :: varid
+      INTEGER  :: err
+      character*(*) varname, standardname, longname, units
+
+      err = nf90_def_var(ncid, varname, type, dimids(1:ndims),
+     $       varid)
+      CALL nf90ERR(err,"Adding variable",myThid)
+      err = nf90_put_att(ncid, varid,
+     $       "standard_name",
+     $       standardname)
+      CALL nf90ERR(err,"Adding variable standard name",myThid)
+      err = nf90_put_att(ncid, varid,
+     $       "long_name",
+     $       longname)
+      CALL nf90ERR(err,"Adding variable longname",myThid)
+      err = nf90_put_att(ncid, varid,
+     $       "units",
+     $       units)
+      CALL nf90ERR(err,"Adding variable units name",myThid)
+      err = nf90_def_var_fill(ncid, varid, nofill, 0)
+      CALL nf90ERR(err,"setting fill",myThid)
+      NF90IO_VAR_DEF = err
+      END FUNCTION
+
+CCCCCCCCCCCCCCC
       FUNCTION NF90IO_VAR_PAR_ACCESS(ncid, varid)
 
       use netcdf
@@ -9,8 +47,6 @@ CCCCCCCCCCCCCCC
 #include "EEPARAMS.h"
 #include "EESUPPORT.h"
 #include "NF90IO.h"
-
-
 
 C     !DESCRIPTION:
 C     Convenience wrappper around NF90_VAR_PAR_ACCESS that

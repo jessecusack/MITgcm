@@ -42,7 +42,7 @@ C #include "NF90IO.h"
         _RL     ks(Nr+10)
 
 C initialize this new file...
-        mode_flag = IOR(nf90_netcdf4)
+        mode_flag = nf90_netcdf4
         IF (usingMPI) THEN
 #ifdef ALLOW_USE_MPI
               mode_flag = IOR(mode_flag, nf90_mpiio)

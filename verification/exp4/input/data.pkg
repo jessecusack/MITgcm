@@ -4,4 +4,5 @@
  usePtracers=.TRUE.,
  useRBCS=.TRUE.,
 #useLayers=.TRUE.,
+ useMNC=.TRUE.,
  &

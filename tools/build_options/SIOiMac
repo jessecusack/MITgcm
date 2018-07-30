@@ -22,7 +22,7 @@
 
 if test "x$MPI" = xtrue ; then
   CC=mpicc
-  FC=mpif77
+  FC=mpif90
   F90C=mpif90
   LINK=$F90C
 else
@@ -72,8 +72,8 @@ else
 fi
 
 INCLUDEDIRS=''
-INCLUDES=''
-LIBS=''
+INCLUDES='-I/usr/local/include'
+LIBS='-I/usr/local/lib'
 
 if [ "x$NETCDF_ROOT" != x ] ; then
     INCLUDEDIR="${NETCDF_ROOT}/include"
@@ -89,4 +89,3 @@ if [ -n "$MPI_INC_DIR" -a "x$MPI" = xtrue ] ; then
     MPIINCLUDEDIR="$MPI_INC_DIR"
    #MPI_HEADER_FILES='mpif.h mpiof.h'
 fi
-
